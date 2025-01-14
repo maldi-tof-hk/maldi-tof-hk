@@ -1,0 +1,1 @@
+- All Python files import modules using relative paths from the root of this repository. Please add a `.pth` file pointing to this repository in your `site-packages` folder for module imports to function properly

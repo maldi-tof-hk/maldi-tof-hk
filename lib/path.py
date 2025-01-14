@@ -1,0 +1,95 @@
+from enum import StrEnum
+import abc
+import typing
+
+if typing.TYPE_CHECKING:
+    from lib.models.base import BaseClassifier
+
+output_root = "data"
+
+
+class Phase(StrEnum):
+    TRAINING = "training"
+    VALIDATION = "validation"
+    CV = "cv"
+    TESTING = "testing"
+
+
+class OutputPath(metaclass=abc.ABCMeta):
+    def __init__(self, root: str):
+        self.root = root
+
+    @abc.abstractmethod
+    def get_subpath(self):
+        raise NotImplementedError()
+
+    def get_path(self, file: str):
+        return f"{output_root}/{self.root}/{self.get_subpath()}-{file}"
+
+
+class ModelPath(OutputPath):
+    def __init__(self, phase: Phase, fold: int = None):
+        super().__init__("models")
+        self.phase = phase
+        self.fold = fold
+        if self.phase == Phase.CV and self.fold is None:
+            raise ValueError("Fold must be specified for CV phase")
+
+    def get_subpath(self):
+        if self.phase == Phase.CV:
+            return f'{self.phase}{"a" if self.fold == 0 else self.fold}'
+        else:
+            return f"{self.phase}"
+
+
+class MetricsPath(OutputPath):
+    def __init__(self, model: "BaseClassifier | str", phase: Phase, fold: int = None):
+        super().__init__("metrics")
+        if isinstance(model, str):
+            self.model = model
+        else:
+            self.model = model.id
+        self.phase = phase
+        self.fold = fold
+        if self.phase == Phase.CV and self.fold is None:
+            raise ValueError("Fold must be specified for CV phase")
+
+    def get_subpath(self):
+        if self.phase == Phase.CV:
+            return f'{self.model}-{self.phase}{"a" if self.fold == 0 else self.fold}'
+        else:
+            return f"{self.model}-{self.phase}"
+
+
+class PredictionPath(OutputPath):
+    def __init__(self, model: "BaseClassifier | str", phase: Phase, fold: int = None):
+        super().__init__("predictions")
+        if isinstance(model, str):
+            self.model = model
+        else:
+            self.model = model.id
+        self.phase = phase
+        self.fold = fold
+        if self.phase == Phase.CV and self.fold is None:
+            raise ValueError("Fold must be specified for CV phase")
+
+    def get_subpath(self):
+        if self.phase == Phase.CV:
+            return f'{self.model}-{self.phase}{"a" if self.fold == 0 else self.fold}'
+        else:
+            return f"{self.model}-{self.phase}"
+
+
+class AnalysisPath(OutputPath):
+    def __init__(self, phase: Phase, fold: int = None):
+        super().__init__("analyses")
+        self.phase = phase
+        self.fold = fold
+        if self.phase == Phase.CV and self.fold is None:
+            raise ValueError("Fold must be specified for CV phase")
+
+    def get_subpath(self):
+        if self.phase == Phase.CV:
+            return f'{self.phase}{"a" if self.fold == 0 else self.fold}'
+        else:
+            return f"{self.phase}"

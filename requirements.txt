@@ -1,0 +1,17 @@
+pandas==2.1.4
+numpy==1.26.4
+tensorflow[and-cuda]==2.15.1
+scikit-learn==1.2.2
+matplotlib==3.7.1
+shap==0.44.1
+pybaselines==1.1.0
+scipy==1.11.1
+tf_keras==2.15.0
+keras==2.15.0
+keras-core==0.1.7
+keras-cv==0.9.0
+keras-tuner==1.4.7
+lightgbm==4.5.0
+xgboost==2.0.3
+catboost==1.2.7
+dill==0.3.8
