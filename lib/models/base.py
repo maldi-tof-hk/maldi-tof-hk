@@ -3,9 +3,11 @@ import abc
 
 from lib.path import ModelPath
 
+
 class BaseClassifier(BaseEstimator, ClassifierMixin, metaclass=abc.ABCMeta):
-    def __init__(self, id: str):
+    def __init__(self, id: str, name: str):
         self.id = id
+        self.name = name
 
     def predict(self, X):
         return self.predict_proba(X)[:, 1] > 0.5

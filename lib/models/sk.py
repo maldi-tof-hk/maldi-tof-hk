@@ -6,8 +6,8 @@ import joblib
 
 
 class SKBaseClassifier(BaseClassifier):
-    def __init__(self, id, model):
-        super().__init__(id)
+    def __init__(self, id, name, model):
+        super().__init__(id, name)
         self.model = model
 
     def fit(self, X, y, *args, **kwargs):
@@ -42,7 +42,7 @@ class LR(SKBaseClassifier):
                 ("lr", lr),
             ]
         )
-        super().__init__("lr", pipeline)
+        super().__init__("lr", "LR", pipeline)
 
 
 class SVM_RBF(SKBaseClassifier):
@@ -64,7 +64,7 @@ class SVM_RBF(SKBaseClassifier):
                 ("svm", svm),
             ]
         )
-        super().__init__("svm-rbf", pipeline)
+        super().__init__("svm-rbf", "SVM-RBF", pipeline)
 
 
 class SVM_Linear(SKBaseClassifier):
@@ -85,7 +85,7 @@ class SVM_Linear(SKBaseClassifier):
                 ("svm", svm),
             ]
         )
-        super().__init__("svm-linear", pipeline)
+        super().__init__("svm-linear", "SVM-Linear", pipeline)
 
 
 class RF(SKBaseClassifier):
@@ -106,7 +106,7 @@ class RF(SKBaseClassifier):
                 ("rf", rf),
             ]
         )
-        super().__init__("rf", pipeline)
+        super().__init__("rf", "RF", pipeline)
 
 
 class LGBM(SKBaseClassifier):
@@ -126,7 +126,7 @@ class LGBM(SKBaseClassifier):
                 ("lightgbm", lightgbm),
             ]
         )
-        super().__init__("lgbm", pipeline)
+        super().__init__("lgbm", "LGBM", pipeline)
 
 
 class XGB(SKBaseClassifier):
@@ -140,7 +140,7 @@ class XGB(SKBaseClassifier):
                 ("xgboost", xgboost),
             ]
         )
-        super().__init__("xgb", pipeline)
+        super().__init__("xgb", "XGB", pipeline)
 
 
 class CatBoost(SKBaseClassifier):
@@ -154,4 +154,4 @@ class CatBoost(SKBaseClassifier):
                 ("catboost", catboost),
             ]
         )
-        super().__init__("catboost", pipeline)
+        super().__init__("catboost", "Catboost", pipeline)

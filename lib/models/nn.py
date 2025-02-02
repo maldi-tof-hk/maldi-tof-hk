@@ -47,7 +47,7 @@ def build_model():
 class NN(BaseClassifier):
 
     def __init__(self):
-        super().__init__("nn")
+        super().__init__("nn", "NN")
         self.model = build_model()
 
     def predict_proba(self, X):

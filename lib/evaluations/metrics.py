@@ -1,3 +1,4 @@
+from lib.models.base import BaseClassifier
 from lib.path import MetricsPath
 import pandas as pd
 import numpy as np
@@ -68,6 +69,42 @@ def evaluate_prc(y_true, y_pred, path: MetricsPath):
     plt.title(f"Precision-recall curve")
     plt.legend(loc="best")
     plt.savefig(path, dpi=300)
+
+
+def evaluate_multiplex_prc(models, path: MetricsPath):
+    path = path.get_path("prc_multi.png")
+    print(f"PRC saved to {path}")
+
+    plt.clf()
+    prc_fig, prc_ax = plt.subplots()
+    prc_ax.plot([0, 1, 1], [1, 1, 0.5], "c--")
+
+    prc_ax_ins = prc_ax.inset_axes(
+        [0.05, 0.25, 0.6, 0.6],
+        xlim=(0.8, 1),
+        ylim=(0.9, 1),
+        xticklabels=[],
+        yticklabels=[],
+    )
+
+    prc_ax.set_xlabel("Recall")
+    prc_ax.set_ylabel("Precision")
+    prc_ax.set_title(f"Precision-recall curve")
+
+    for model, y_true, y_pred in models:
+        precision, recall, thresholds = precision_recall_curve(y_true, y_pred)
+        auc_precision_recall = auc(recall, precision)
+        print(f"{model.name}: ", auc_precision_recall)
+        prc_ax.plot(
+            recall,
+            precision,
+            label="{} (area = {:.3f})".format(model.name, auc_precision_recall),
+        )
+        prc_ax_ins.plot(recall, precision)
+
+    prc_ax.legend(loc="best")
+    prc_ax.indicate_inset_zoom(prc_ax_ins)
+    prc_fig.savefig(path, dpi=300)
 
 
 def evaluate_roc(y_true, y_pred, path: MetricsPath):
@@ -204,6 +241,30 @@ def evaluate_tac_figure(y_true, y_pred, path: MetricsPath):
     plt.title(f"Threshold-accuracy curve")
     plt.legend(loc="best")
     plt.savefig(path, dpi=300)
+
+
+def evaluate_multiplex_tac(models, path: MetricsPath):
+    path = path.get_path("tac_multi.png")
+    print(f"TAC saved to {path}")
+
+    plt.clf()
+    tac_fig, tac_ax = plt.subplots()
+    tac_ax.set_xlabel("% sample rejected")
+    tac_ax.set_ylabel("Filtered accuracy")
+    tac_ax.set_title(f"Threshold-accuracy curve")
+    tac_ax.plot([1, 0, 0], [1, 1, 0.9], "c--")
+
+    for model, y_true, y_pred in models:
+        accepted_list, accuracy_list, threshold_list = tac(y_true, y_pred)
+        autpc = auc(accepted_list, accuracy_list)
+        tac_ax.plot(
+            1 - np.array(accepted_list),
+            accuracy_list,
+            label=f"{model.name} (area = {autpc:.3f})",
+        )
+
+    tac_ax.legend(loc="best")
+    tac_fig.savefig(path, dpi=300)
 
 
 def evaluate_all_metrics(y_true, y_pred, path: MetricsPath):

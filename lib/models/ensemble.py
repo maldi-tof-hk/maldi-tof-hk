@@ -5,7 +5,9 @@ import numpy as np
 
 class Ensemble(BaseClassifier):
     def __init__(self, models: list[BaseClassifier], weights: list[float]):
-        super().__init__(f"ensemble-{'-'.join([model.id for model in models])}")
+        super().__init__(
+            f"ensemble-{'-'.join([model.id for model in models])}", "Ensemble"
+        )
         self.models = models
         self.weights = weights
 
