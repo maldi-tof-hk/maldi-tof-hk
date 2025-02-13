@@ -3,6 +3,7 @@ import matplotlib.gridspec as grid
 import matplotlib
 import numpy as np
 from lib.path import AnalysisPath
+from lib.utils import random_choice
 
 
 def analyze_pseudogel(
@@ -18,10 +19,8 @@ def analyze_pseudogel(
     plot_min = center - 100
     plot_max = center + 100
 
-    rng = np.random.default_rng(random_state)
-    sensitive_samples = rng.choice(sensitive_samples, size=sample_n, replace=False)
-    rng = np.random.default_rng(random_state)
-    resistant_samples = rng.choice(resistant_samples, size=sample_n, replace=False)
+    sensitive_samples = random_choice(sensitive_samples, sample_n, random_state)
+    resistant_samples = random_choice(resistant_samples, sample_n, random_state)
 
     plt.clf()
     plt.figure(figsize=(8, 6))

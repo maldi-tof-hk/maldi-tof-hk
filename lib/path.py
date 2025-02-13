@@ -93,3 +93,17 @@ class AnalysisPath(OutputPath):
             return f'{self.phase}{"a" if self.fold == 0 else self.fold}'
         else:
             return f"{self.phase}"
+
+
+class ModelAnalysisPath(AnalysisPath):
+    def __init__(self, model: "BaseClassifier | str", phase: Phase, fold: int = None):
+        super().__init__(phase, fold)
+        if isinstance(model, str):
+            self.model_id = model
+            self.model = None
+        else:
+            self.model_id = model.id
+            self.model = model
+
+    def get_subpath(self):
+        return f"{self.model_id}-{super().get_subpath()}"

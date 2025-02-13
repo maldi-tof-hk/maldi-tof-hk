@@ -196,3 +196,13 @@ def kfold_split(df: pd.DataFrame, n_splits=5, random_state=812):
         fold_id += 1
 
     return splits
+
+
+def aggregate_intensities(samples, start, end):
+    sum = None
+    for arg in range(start, end + 1):
+        if sum is None:
+            sum = samples[:, arg] ** 2
+        else:
+            sum += samples[:, arg] ** 2
+    return np.sqrt(sum)

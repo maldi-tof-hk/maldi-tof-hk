@@ -1,3 +1,4 @@
+import shap
 from sklearn.preprocessing import StandardScaler
 from sklearn.pipeline import Pipeline
 from lib.models.base import BaseClassifier
@@ -44,6 +45,11 @@ class LR(SKBaseClassifier):
         )
         super().__init__("lr", "LR", pipeline)
 
+    def compute_shap(self, X, background_data):
+        explainer = shap.LinearExplainer(self.model.named_steps["lr"], background_data)
+        shap_values = explainer.shap_values(X)
+        return [shap_values]
+
 
 class SVM_RBF(SKBaseClassifier):
     def __init__(self, random_state=812):
@@ -66,6 +72,16 @@ class SVM_RBF(SKBaseClassifier):
         )
         super().__init__("svm-rbf", "SVM-RBF", pipeline)
 
+    def compute_shap(self, X, background_data):
+        # Note: KernelExplainer is extremely slow but is the only appropriate explainer for SVM with RBF kernel
+        # Only a very small subset of the data is used for the explainer, thus the result may be highly inaccurate
+        explainer = shap.KernelExplainer(
+            self.model.named_steps["svm"].predict_proba,
+            shap.kmeans(background_data, 1),
+        )
+        shap_values = explainer.shap_values(X[:120])
+        return [shap_values[0]]
+
 
 class SVM_Linear(SKBaseClassifier):
     def __init__(self, random_state=812):
@@ -86,6 +102,11 @@ class SVM_Linear(SKBaseClassifier):
             ]
         )
         super().__init__("svm-linear", "SVM-Linear", pipeline)
+
+    def compute_shap(self, X, background_data):
+        explainer = shap.LinearExplainer(self.model.named_steps["svm"], background_data)
+        shap_values = explainer.shap_values(X)
+        return [shap_values]
 
 
 class RF(SKBaseClassifier):
@@ -108,6 +129,11 @@ class RF(SKBaseClassifier):
         )
         super().__init__("rf", "RF", pipeline)
 
+    def compute_shap(self, X, background_data):
+        explainer = shap.TreeExplainer(self.model.named_steps["rf"])
+        shap_values = explainer.shap_values(X)
+        return [shap_values[0]]
+
 
 class LGBM(SKBaseClassifier):
     def __init__(self, random_state=812):
@@ -128,6 +154,11 @@ class LGBM(SKBaseClassifier):
         )
         super().__init__("lgbm", "LGBM", pipeline)
 
+    def compute_shap(self, X, background_data):
+        explainer = shap.TreeExplainer(self.model.named_steps["lightgbm"])
+        shap_values = explainer.shap_values(X)
+        return [shap_values[0]]
+
 
 class XGB(SKBaseClassifier):
     def __init__(self, random_state=812):
@@ -142,6 +173,11 @@ class XGB(SKBaseClassifier):
         )
         super().__init__("xgb", "XGB", pipeline)
 
+    def compute_shap(self, X, background_data):
+        explainer = shap.TreeExplainer(self.model.named_steps["xgboost"])
+        shap_values = explainer.shap_values(X)
+        return [shap_values]
+
 
 class CatBoost(SKBaseClassifier):
     def __init__(self, random_state=812):
@@ -155,3 +191,8 @@ class CatBoost(SKBaseClassifier):
             ]
         )
         super().__init__("catboost", "Catboost", pipeline)
+
+    def compute_shap(self, X, background_data):
+        explainer = shap.TreeExplainer(self.model.named_steps["catboost"])
+        shap_values = explainer.shap_values(X)
+        return [shap_values]

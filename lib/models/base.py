@@ -27,3 +27,7 @@ class BaseClassifier(BaseEstimator, ClassifierMixin, metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def load(self, path: ModelPath):
         raise NotImplementedError()
+
+    @abc.abstractmethod
+    def compute_shap(self, X, background_data):
+        raise NotImplementedError()

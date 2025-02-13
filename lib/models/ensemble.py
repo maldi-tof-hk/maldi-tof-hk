@@ -1,3 +1,4 @@
+import shap
 from lib.models.base import BaseClassifier
 from lib.path import ModelPath
 import numpy as np
@@ -30,3 +31,10 @@ class Ensemble(BaseClassifier):
     def load(self, path: ModelPath):
         for model in self.models:
             model.load(path)
+
+    def compute_shap(self, X, background_data):
+        shap_values = np.array(
+            [model.compute_shap(X, background_data) for model in self.models]
+        )
+        shap_values = np.average(shap_values, axis=0, weights=self.weights)
+        return [shap_values[0]]
