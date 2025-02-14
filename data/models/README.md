@@ -1,1 +1,1 @@
-Models are unavailable due to large file sizes.
+Pre-trained models are not publicly availble. 
