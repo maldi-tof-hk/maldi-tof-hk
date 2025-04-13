@@ -118,7 +118,7 @@ def load_spectra():
     return df
 
 
-def train_val_split(df: pd.DataFrame, train_radio=0.8):
+def train_val_split(df: pd.DataFrame, train_ratio=0.8):
     """
     Split the data frame into training and validation sets.
 
@@ -138,8 +138,31 @@ def train_val_split(df: pd.DataFrame, train_radio=0.8):
         X_train, y_train, X_val, y_val
     """
 
-    train = df.sample(frac=train_radio)
+    train = df.sample(frac=train_ratio)
     val = df.drop(train.index)
+
+    return xy_split(train, val)
+
+
+def xy_split(train: pd.DataFrame, val: pd.DataFrame):
+    """
+    Split the data frames into (x,y) training and validation sets.
+
+    Parameters
+    ----------
+
+    train : pandas.DataFrame
+        Data frame containing training data.
+    val : pandas.DataFrame
+        Data frame containing validation data.
+
+    Returns
+    -------
+
+    tuple
+        Tuple containing the training and validation sets in the following order:
+        X_train, y_train, X_val, y_val
+    """
 
     X_train = np.vstack(train["bins"].to_numpy())
     y_train = train["is_mrsa"].to_numpy().astype(float)

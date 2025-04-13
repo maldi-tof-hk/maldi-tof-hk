@@ -13,6 +13,7 @@ class Phase(StrEnum):
     VALIDATION = "validation"
     CV = "cv"
     TESTING = "testing"
+    BY_YEAR = "by_year"
 
 
 class OutputPath(metaclass=abc.ABCMeta):
@@ -34,9 +35,11 @@ class ModelPath(OutputPath):
         self.fold = fold
         if self.phase == Phase.CV and self.fold is None:
             raise ValueError("Fold must be specified for CV phase")
+        if self.phase == Phase.BY_YEAR and self.fold is None:
+            raise ValueError("Year must be specified for by-year phase")
 
     def get_subpath(self):
-        if self.phase == Phase.CV:
+        if self.phase == Phase.CV or self.phase == Phase.BY_YEAR:
             return f'{self.phase}{"a" if self.fold == 0 else self.fold}'
         else:
             return f"{self.phase}"
@@ -53,9 +56,11 @@ class MetricsPath(OutputPath):
         self.fold = fold
         if self.phase == Phase.CV and self.fold is None:
             raise ValueError("Fold must be specified for CV phase")
+        if self.phase == Phase.BY_YEAR and self.fold is None:
+            raise ValueError("Year must be specified for by-year phase")
 
     def get_subpath(self):
-        if self.phase == Phase.CV:
+        if self.phase == Phase.CV or self.phase == Phase.BY_YEAR:
             return f'{self.model}-{self.phase}{"a" if self.fold == 0 else self.fold}'
         else:
             return f"{self.model}-{self.phase}"
@@ -72,9 +77,11 @@ class PredictionPath(OutputPath):
         self.fold = fold
         if self.phase == Phase.CV and self.fold is None:
             raise ValueError("Fold must be specified for CV phase")
+        if self.phase == Phase.BY_YEAR and self.fold is None:
+            raise ValueError("Year must be specified for by-year phase")
 
     def get_subpath(self):
-        if self.phase == Phase.CV:
+        if self.phase == Phase.CV or self.phase == Phase.BY_YEAR:
             return f'{self.model}-{self.phase}{"a" if self.fold == 0 else self.fold}'
         else:
             return f"{self.model}-{self.phase}"
@@ -87,9 +94,11 @@ class AnalysisPath(OutputPath):
         self.fold = fold
         if self.phase == Phase.CV and self.fold is None:
             raise ValueError("Fold must be specified for CV phase")
+        if self.phase == Phase.BY_YEAR and self.fold is None:
+            raise ValueError("Year must be specified for by-year phase")
 
     def get_subpath(self):
-        if self.phase == Phase.CV:
+        if self.phase == Phase.CV or self.phase == Phase.BY_YEAR:
             return f'{self.phase}{"a" if self.fold == 0 else self.fold}'
         else:
             return f"{self.phase}"
