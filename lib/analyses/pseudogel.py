@@ -15,6 +15,7 @@ def analyze_pseudogel(
     random_state=812,
 ):
     path = path.get_path(f"pseudogel_{center}.png")
+    print(f"Pseudogel plot saved to {path}")
 
     plot_min = center - 100
     plot_max = center + 100
@@ -35,19 +36,20 @@ def analyze_pseudogel(
     ax2 = plt.subplot(gs[0])
     ax2.set_xlim(plot_min, plot_max)
     ax2.set_title("MSSA")
-    ax2.set_ylabel("Sample")
+    ax2.set_xlabel("Features")
+    ax2.set_ylabel("Sample ID")
     p2 = ax2.imshow(
         sensitive_samples, aspect="auto", norm=matplotlib.colors.PowerNorm(0.5)
     )
 
     colorAx = plt.subplot(gs[1])
-    cb = plt.colorbar(p2, cax=colorAx)
+    cb = plt.colorbar(p2, cax=colorAx, label="Normalized Intensity")
 
     ax3 = plt.subplot(gs[2], sharex=ax2)
     ax3.set_xlim(plot_min, plot_max)
     ax3.set_title("MRSA")
-    ax3.set_xlabel("Feature")
-    ax3.set_ylabel("Sample")
+    ax3.set_xlabel("Features")
+    ax3.set_ylabel("Sample ID")
     p3 = ax3.imshow(
         resistant_samples, aspect="auto", norm=matplotlib.colors.PowerNorm(0.5)
     )

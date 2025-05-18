@@ -1,8 +1,8 @@
 import numpy as np
 from lib.analyses.pseudogel import analyze_pseudogel
-from lib.analyses.scatter import aggregate_intensities, analyze_scatter
+from lib.analyses.scatter import analyze_scatter
 from lib.analyses.shap import analyze_all_shap
-from lib.data import load_spectra, train_val_split
+from lib.data import aggregate_intensities, load_spectra, train_val_split
 from lib.models.ensemble import Ensemble
 from lib.models.nn import NN
 from lib.models.sk import LGBM, LR, RF, SVM_RBF, XGB, CatBoost, SVM_Linear
