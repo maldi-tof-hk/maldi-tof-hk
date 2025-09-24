@@ -24,7 +24,7 @@ def analyze_pseudogel(
     resistant_samples = random_choice(resistant_samples, sample_n, random_state)
 
     plt.clf()
-    plt.figure(figsize=(8, 6))
+    plt.figure(figsize=(5, 5 / 4 * 3))
 
     gs = grid.GridSpec(
         2,
