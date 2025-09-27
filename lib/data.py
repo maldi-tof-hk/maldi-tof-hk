@@ -55,7 +55,7 @@ def preprocess_spectrum_numpy(spectrum):
     # The highest and lowest m/z values of each spectrum is not fixed.
     # Here we simply trim off values lower than 2000 or higher than 20000.
     # R:   spectra = trim(spectra[[1]], range=c(2000,20000))
-    spectrum = spectrum[(spectrum[:, 0] >= 2000) & (spectrum[:, 0] <= 20000)]
+    spectrum = spectrum[(spectrum[:, 0] >= 2000) & (spectrum[:, 0] < 20000)]
 
     # In the raw spectrum, the m/z values (aka the X coordinates) can be a decimal number,
     # but it is very hard to design a model that ingest arbitrary-sized data.
@@ -74,7 +74,7 @@ def preprocess_spectrum_numpy(spectrum):
     return spectrum
 
 
-def preprocess_spectrum_file(path: str, sep=" "):
+def preprocess_spectrum_file(path: str, sep=" ", header: int | None = None):
     """
     Load a spectrum from a file and preprocess it using the same steps as in the DRIAMS dataset
     reference implementation in R:
@@ -84,14 +84,19 @@ def preprocess_spectrum_file(path: str, sep=" "):
     """
 
     # Retrieve the spectrum. Each column is separated by a space, not by comma
-    spectrum = pd.read_csv(path, sep=sep, header=None).to_numpy()
+    spectrum = pd.read_csv(path, sep=sep, header=header).to_numpy()
 
     return preprocess_spectrum_numpy(spectrum)
 
 
-def load_spectra():
+def load_spectra(path: str = "data/samples_anonymized") -> pd.DataFrame:
     """
     Load spectrum data from the anonymized dataset
+
+    Parameters
+    ----------
+    path : str
+        Path to the folder containing the dataset
 
     Returns
     -------
@@ -100,15 +105,13 @@ def load_spectra():
         Data frame with the 'bins' column containing the spectra
     """
 
-    df = pd.read_csv("data/samples_anonymized/index.csv")
+    df = pd.read_csv(f"{path}/index.csv")
 
     progress = 0
 
     def get_spectra(row):
         nonlocal progress
-        arr = np.loadtxt(
-            f'data/samples_anonymized/spectra_processed/{row["sample_id"]}.txt'
-        )
+        arr = np.loadtxt(f'{path}/spectra_processed/{row["sample_id"]}.txt')
         progress += 1
         if progress == len(df) or progress % 100 == 0:
             print("Load progress: ", progress, "/", len(df))
@@ -164,17 +167,38 @@ def xy_split(train: pd.DataFrame, val: pd.DataFrame):
         X_train, y_train, X_val, y_val
     """
 
-    X_train = np.vstack(train["bins"].to_numpy())
-    y_train = train["is_mrsa"].to_numpy().astype(float)
-
-    X_val = np.vstack(val["bins"].to_numpy())
-    y_val = val["is_mrsa"].to_numpy().astype(float)
+    X_train, y_train = df_to_xy(train)
+    X_val, y_val = df_to_xy(val)
 
     print("Data split:")
     print("  Training: ", X_train.shape, y_train.shape)
     print("  Validation: ", X_val.shape, y_val.shape)
 
     return X_train, y_train, X_val, y_val
+
+
+def df_to_xy(df: pd.DataFrame):
+    """
+    Split the data frame into (x,y) sets.
+
+    Parameters
+    ----------
+
+    df : pandas.DataFrame
+        Data frame containing the data to split.
+
+    Returns
+    -------
+
+    tuple
+        Tuple containing the sets in the following order:
+        X, y
+    """
+
+    X = np.vstack(df["bins"].to_numpy())
+    y = df["is_mrsa"].to_numpy().astype(float)
+
+    return X, y
 
 
 def kfold_split(df: pd.DataFrame, n_splits=5, random_state=812):

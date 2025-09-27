@@ -14,6 +14,7 @@ class Phase(StrEnum):
     CV = "cv"
     TESTING = "testing"
     BY_YEAR = "by_year"
+    EXTERNAL = "external"
 
 
 class OutputPath(metaclass=abc.ABCMeta):
