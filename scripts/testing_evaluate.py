@@ -1,7 +1,7 @@
 from lib.evaluations.metrics import (
     evaluate_all_metrics,
     evaluate_multiplex_prc,
-    evaluate_multiplex_tac,
+    evaluate_multiplex_arc,
 )
 from lib.evaluations.predictions import load_predictions
 from lib.models.ensemble import Ensemble
@@ -31,4 +31,4 @@ for model in models:
     model_predictions.append((model, y_true, y_pred))
 
 evaluate_multiplex_prc(model_predictions, MetricsPath("top_models", Phase.TESTING))
-evaluate_multiplex_tac(model_predictions, MetricsPath("top_models", Phase.TESTING))
+evaluate_multiplex_arc(model_predictions, MetricsPath("top_models", Phase.TESTING))

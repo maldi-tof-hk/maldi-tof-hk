@@ -16,6 +16,7 @@ from sklearn.metrics import (
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as grd
 import json
+from scipy import stats
 
 
 def save_metrics(metrics, path: MetricsPath):
@@ -62,7 +63,7 @@ def evaluate_prc(y_true, y_pred, path: MetricsPath):
     auprc = auc(recall_list, precision_list)
 
     plt.clf()
-    plt.plot([0, 1, 1], [1, 1, 0], "c--")
+    plt.plot([0, 1, 1], [1, 1, 0.5], "c--")
     plt.plot(recall_list, precision_list, label="Model (area = {:.3f})".format(auprc))
     plt.xlabel("Recall")
     plt.ylabel("Precision")
@@ -135,18 +136,6 @@ def evaluate_confusion_matrix(y_true, y_pred, path: MetricsPath):
     plt.savefig(path, dpi=300)
 
 
-def evaluate_output_distribution(y_true, y_pred, path: MetricsPath):
-    path = path.get_path("output_distribution.png")
-    print(f"Output distribution saved to {path}")
-
-    plt.clf()
-    plt.hist(y_pred, range=(0, 1), bins=20, log=True)
-    plt.title("Distribution of model output")
-    plt.xlabel("Model output")
-    plt.ylabel("Frequency")
-    plt.savefig(path, dpi=300)
-
-
 def bin_accuracy_by_confidence(y_true, y_pred, bin_count=20):
     """Aggregrate validation accuracy by model confidence"""
     abs_pred = np.abs(y_pred - 0.5)
@@ -167,23 +156,79 @@ def bin_accuracy_by_confidence(y_true, y_pred, bin_count=20):
     return confidence_list, accuracy_list
 
 
-def evaluate_confidence_accuracy(y_true, y_pred, path: MetricsPath):
-    path = path.get_path("confidence_accuracy.png")
-    print(f"Confidence accuracy saved to {path}")
+def evaluate_output_reliability(y_true, y_pred, path: MetricsPath):
+    path = path.get_path("output_reliability.png")
+    print(f"Output reliability saved to {path}")
+
+    plt.clf()
+    fig, axes = plt.subplots(1, 2)
+    fig.set_size_inches(10, 5)
+    fig.subplots_adjust(wspace=0.3)
+    axes[0].hist(np.abs(y_pred - 0.5) + 0.5, range=(0.5, 1), bins=20, log=True)
+    axes[0].set_title("Model output distribution")
+    axes[0].set_xlabel("Model confidence")
+    axes[0].set_ylabel("Frequency")
 
     bin_count = 20
     acc_x, acc_y = bin_accuracy_by_confidence(y_true, y_pred, bin_count)
+    axes[1].plot([0.5, 1], [0.5, 1], "c--")
+    axes[1].bar(acc_x, acc_y, 0.5 / bin_count, align="edge")
+    axes[1].set_ylim((0.3, 1))
+    axes[1].set_title("Model confidence reliability")
+    axes[1].set_xlabel("Model confidence")
+    axes[1].set_ylabel("Accuracy")
+
+    fig.savefig(path, dpi=300)
+    plt.figure()
+
+
+def evaluate_cv_output_reliability(folds, path: MetricsPath):
+    path = path.get_path("cv_output_reliability.png")
+    print(f"CV Output reliability saved to {path}")
+
+    acc_x = None
+    acc_y = []
+
+    bin_count = 20
+    for fold_id, y_true, y_pred in folds:
+        fold_acc_x, fold_acc_y = bin_accuracy_by_confidence(y_true, y_pred, bin_count)
+        if acc_x is None:
+            acc_x = fold_acc_x
+        acc_y.append(fold_acc_y)
+
+    acc_y = np.vstack(acc_y)
+    mean_list = []
+    ci_list = []
+    for i in range(acc_y.shape[1]):
+        mean, std = np.mean(acc_y[:, i]), np.std(acc_y[:, i])
+        mean_list.append(mean)
+        lower_ci, upper_ci = stats.norm.interval(
+            0.95, loc=mean, scale=std / np.sqrt(acc_y.shape[0])
+        )
+        ci_list.append((upper_ci - lower_ci) / 2)
+
     plt.clf()
-    plt.bar(acc_x, acc_y, 0.5 / bin_count, align="edge")
-    plt.ylim((0.4, 1))
+    plt.figure(figsize=(5, 6))
+    plt.plot([0.5, 1], [0.5, 1], "c--")
+    plt.bar(acc_x, mean_list, 0.5 / bin_count, align="edge")
+    plt.errorbar(
+        np.array(acc_x) + 0.5 / bin_count / 2,
+        mean_list,
+        yerr=np.array(ci_list),
+        fmt="none",
+        ecolor="black",
+        capsize=5,
+    )
+    plt.ylim((0.2, 1))
     plt.title("Accuracy by model confidence")
     plt.xlabel("Model confidence")
     plt.ylabel("Validation accuracy")
     plt.savefig(path, dpi=300)
+    plt.figure()
 
 
-def tac(y_true, y_pred):
-    """Calculate threshold-accuracy curve"""
+def arc(y_true, y_pred):
+    """Calculate accuracy-rejection curve"""
     accepted_list = []
     accuracy_list = []
     threshold_list = []
@@ -207,11 +252,11 @@ def tac(y_true, y_pred):
     return accepted_list, accuracy_list, threshold_list
 
 
-def evaluate_tac_table(y_true, y_pred, path: MetricsPath):
-    path = path.get_path("tac.csv")
-    print(f"TAC table saved to {path}")
+def evaluate_arc_table(y_true, y_pred, path: MetricsPath):
+    path = path.get_path("arc.csv")
+    print(f"ARC table saved to {path}")
 
-    accepted_list, accuracy_list, threshold_list = tac(y_true, y_pred)
+    accepted_list, accuracy_list, threshold_list = arc(y_true, y_pred)
     df = pd.DataFrame(
         {
             "Threshold": threshold_list,
@@ -222,49 +267,41 @@ def evaluate_tac_table(y_true, y_pred, path: MetricsPath):
     df.to_csv(path, index=False)
 
 
-def evaluate_tac_figure(y_true, y_pred, path: MetricsPath):
-    path = path.get_path("tac.png")
-    print(f"TAC figure saved to {path}")
+def evaluate_arc_figure(y_true, y_pred, path: MetricsPath):
+    path = path.get_path("arc.png")
+    print(f"ARC figure saved to {path}")
 
-    accepted_list, accuracy_list, threshold_list = tac(y_true, y_pred)
-    autac = auc(accepted_list, accuracy_list)
+    accepted_list, accuracy_list, threshold_list = arc(y_true, y_pred)
 
     plt.clf()
-    plt.plot([1, 0, 0], [1, 1, 0.9], "c--")
     plt.plot(
         1 - np.array(accepted_list),
         accuracy_list,
-        label="Model (area = {:.3f})".format(autac),
     )
     plt.xlabel("% sample rejected")
-    plt.ylabel("Filtered accuracy")
-    plt.title(f"Threshold-accuracy curve")
-    plt.legend(loc="best")
+    plt.ylabel("Accuracy")
+    plt.title(f"Accuracy-rejection curve")
     plt.savefig(path, dpi=300)
 
 
-def evaluate_multiplex_tac(models, path: MetricsPath):
-    path = path.get_path("tac_multi.png")
-    print(f"TAC saved to {path}")
+def evaluate_multiplex_arc(models, path: MetricsPath):
+    path = path.get_path("arc_multi.png")
+    print(f"ARC saved to {path}")
 
     plt.clf()
-    tac_fig, tac_ax = plt.subplots()
-    tac_ax.set_xlabel("% sample rejected")
-    tac_ax.set_ylabel("Filtered accuracy")
-    tac_ax.set_title(f"Threshold-accuracy curve")
-    tac_ax.plot([1, 0, 0], [1, 1, 0.9], "c--")
+    arc_fig, arc_ax = plt.subplots()
+    arc_ax.set_xlabel("% sample rejected")
+    arc_ax.set_ylabel("Accuracy")
+    arc_ax.set_title(f"Accuracy-rejection curve")
 
     for model, y_true, y_pred in models:
-        accepted_list, accuracy_list, threshold_list = tac(y_true, y_pred)
-        autpc = auc(accepted_list, accuracy_list)
-        tac_ax.plot(
+        accepted_list, accuracy_list, threshold_list = arc(y_true, y_pred)
+        arc_ax.plot(
             1 - np.array(accepted_list),
             accuracy_list,
-            label=f"{model.name} (area = {autpc:.3f})",
         )
 
-    tac_ax.legend(loc="best")
-    tac_fig.savefig(path, dpi=300)
+    arc_fig.savefig(path, dpi=300)
 
 
 def evaluate_all_metrics(y_true, y_pred, path: MetricsPath):
@@ -272,7 +309,6 @@ def evaluate_all_metrics(y_true, y_pred, path: MetricsPath):
     evaluate_prc(y_true, y_pred, path)
     evaluate_roc(y_true, y_pred, path)
     evaluate_confusion_matrix(y_true, y_pred, path)
-    evaluate_output_distribution(y_true, y_pred, path)
-    evaluate_confidence_accuracy(y_true, y_pred, path)
-    evaluate_tac_table(y_true, y_pred, path)
-    evaluate_tac_figure(y_true, y_pred, path)
+    evaluate_output_reliability(y_true, y_pred, path)
+    evaluate_arc_table(y_true, y_pred, path)
+    evaluate_arc_figure(y_true, y_pred, path)
