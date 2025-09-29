@@ -186,6 +186,7 @@ def evaluate_cv_output_reliability(folds, path: MetricsPath):
     path = path.get_path("cv_output_reliability.png")
     print(f"CV Output reliability saved to {path}")
 
+    outputs = []
     acc_x = None
     acc_y = []
 
@@ -195,6 +196,7 @@ def evaluate_cv_output_reliability(folds, path: MetricsPath):
         if acc_x is None:
             acc_x = fold_acc_x
         acc_y.append(fold_acc_y)
+        outputs.append(y_pred)
 
     acc_y = np.vstack(acc_y)
     mean_list = []
@@ -207,11 +209,25 @@ def evaluate_cv_output_reliability(folds, path: MetricsPath):
         )
         ci_list.append((upper_ci - lower_ci) / 2)
 
+    outputs = np.concatenate(outputs)
+
     plt.clf()
-    plt.figure(figsize=(5, 6))
-    plt.plot([0.5, 1], [0.5, 1], "c--")
-    plt.bar(acc_x, mean_list, 0.5 / bin_count, align="edge")
-    plt.errorbar(
+    fig, axes = plt.subplots(1, 2)
+    fig.set_size_inches(10, 5)
+    fig.subplots_adjust(wspace=0.3)
+    axes[0].hist(
+        np.abs(outputs - 0.5) + 0.5,
+        range=(0.5, 1),
+        bins=20,
+        log=True,
+    )
+    axes[0].set_title("Model output distribution")
+    axes[0].set_xlabel("Model confidence")
+    axes[0].set_ylabel("Frequency")
+
+    axes[1].plot([0.5, 1], [0.5, 1], "c--")
+    axes[1].bar(acc_x, mean_list, 0.5 / bin_count, align="edge")
+    axes[1].errorbar(
         np.array(acc_x) + 0.5 / bin_count / 2,
         mean_list,
         yerr=np.array(ci_list),
@@ -219,11 +235,12 @@ def evaluate_cv_output_reliability(folds, path: MetricsPath):
         ecolor="black",
         capsize=5,
     )
-    plt.ylim((0.2, 1))
-    plt.title("Accuracy by model confidence")
-    plt.xlabel("Model confidence")
-    plt.ylabel("Validation accuracy")
-    plt.savefig(path, dpi=300)
+    axes[1].set_ylim((0.2, 1))
+    axes[1].set_title("Accuracy by model confidence")
+    axes[1].set_xlabel("Model confidence")
+    axes[1].set_ylabel("Validation accuracy")
+
+    fig.savefig(path, dpi=300)
     plt.figure()
 
 
