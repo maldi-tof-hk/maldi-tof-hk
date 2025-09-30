@@ -72,7 +72,7 @@ def evaluate_prc(y_true, y_pred, path: MetricsPath):
     plt.savefig(path, dpi=300)
 
 
-def evaluate_multiplex_prc(models, path: MetricsPath):
+def evaluate_multiplex_prc(models, path: MetricsPath, enable_inset=True):
     path = path.get_path("prc_multi.png")
     print(f"PRC saved to {path}")
 
@@ -80,13 +80,14 @@ def evaluate_multiplex_prc(models, path: MetricsPath):
     prc_fig, prc_ax = plt.subplots()
     prc_ax.plot([0, 1, 1], [1, 1, 0.5], "c--")
 
-    prc_ax_ins = prc_ax.inset_axes(
-        [0.05, 0.25, 0.6, 0.6],
-        xlim=(0.8, 1),
-        ylim=(0.9, 1),
-        xticklabels=[],
-        yticklabels=[],
-    )
+    if enable_inset:
+        prc_ax_ins = prc_ax.inset_axes(
+            [0.05, 0.25, 0.6, 0.6],
+            xlim=(0.8, 1),
+            ylim=(0.9, 1),
+            xticklabels=[],
+            yticklabels=[],
+        )
 
     prc_ax.set_xlabel("Recall")
     prc_ax.set_ylabel("Precision")
@@ -101,10 +102,12 @@ def evaluate_multiplex_prc(models, path: MetricsPath):
             precision,
             label="{} (area = {:.3f})".format(model.name, auc_precision_recall),
         )
-        prc_ax_ins.plot(recall, precision)
+        if enable_inset:
+            prc_ax_ins.plot(recall, precision)
 
     prc_ax.legend(loc="best")
-    prc_ax.indicate_inset_zoom(prc_ax_ins)
+    if enable_inset:
+        prc_ax.indicate_inset_zoom(prc_ax_ins)
     prc_fig.savefig(path, dpi=300)
 
 
@@ -316,8 +319,10 @@ def evaluate_multiplex_arc(models, path: MetricsPath):
         arc_ax.plot(
             1 - np.array(accepted_list),
             accuracy_list,
+            label="{}".format(model.name),
         )
 
+    arc_ax.legend(loc="best")
     arc_fig.savefig(path, dpi=300)
 
 
