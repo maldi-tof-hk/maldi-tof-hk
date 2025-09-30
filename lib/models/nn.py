@@ -126,11 +126,11 @@ def build_mini_model():
     model = Sequential()
     model.add(InputLayer(input_shape=(3,)))
 
-    model.add(Dense(3))
+    model.add(Dense(9))
     model.add(LeakyReLU(alpha=0.05))
-    model.add(Dense(3))
+    model.add(Dense(9))
     model.add(LeakyReLU(alpha=0.05))
-    model.add(Dense(3))
+    model.add(Dense(9))
     model.add(LeakyReLU(alpha=0.05))
 
     model.add(Dense(1, activation="sigmoid"))
