@@ -121,7 +121,7 @@ def load_spectra(path: str = "data/samples_anonymized") -> pd.DataFrame:
     return df
 
 
-def train_val_split(df: pd.DataFrame, train_ratio=0.8):
+def train_val_split(df: pd.DataFrame, train_ratio=0.8, random_state=812):
     """
     Split the data frame into training and validation sets.
 
@@ -130,8 +130,10 @@ def train_val_split(df: pd.DataFrame, train_ratio=0.8):
 
     df : pandas.DataFrame
         Data frame containing the data to split.
-    train_radio : float
+    train_ratio : float
         Ratio of the data to use for training.
+    random_state : int
+        Random seed to use for the split.
 
     Returns
     -------
@@ -141,7 +143,7 @@ def train_val_split(df: pd.DataFrame, train_ratio=0.8):
         X_train, y_train, X_val, y_val
     """
 
-    train = df.sample(frac=train_ratio)
+    train = df.sample(frac=train_ratio, random_state=random_state)
     val = df.drop(train.index)
 
     return xy_split(train, val)
