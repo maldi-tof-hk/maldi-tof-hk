@@ -15,7 +15,7 @@ def analyze_shap_summary(shap_values, X, path: ModelAnalysisPath):
         X,
         show=False,
         title=f"SHAP Summary - {path.model.name if path.model is not None else path.model_id}",
-        plot_size=0.25
+        plot_size=0.25,
     )
     plt.savefig(output, dpi=300)
 
@@ -28,7 +28,7 @@ def analyze_shap_spectrum(shap_values, X, path: ModelAnalysisPath):
     mean_shap = np.array([np.mean(np.absolute(x)) for x in mean_shap])
 
     plt.clf()
-    plt.figure(figsize=(5, 5 / 3))
+    plt.figure(figsize=(15, 5))
     plt.plot(mean_shap)
     plt.title(
         f"Mean SHAP Values - {path.model.name if path.model is not None else path.model_id}"
