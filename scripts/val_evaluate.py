@@ -18,7 +18,6 @@ nn = NN()
 lgbm = LGBM()
 ensemble = Ensemble([nn, lgbm], [26, 24])
 models = [nn, lgbm, XGB(), CatBoost(), SVM_RBF(), SVM_Linear(), LR(), RF(), ensemble]
-# models = [lgbm]
 
 for model in models:
     print(f"=================== Evaluating {model.id} ===================")
