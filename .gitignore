@@ -2,5 +2,8 @@ __pycache__
 .local
 catboost_info
 
+# Scripts to anonymize data
+scripts/data
+
 # Package version reference
 requirements.all.txt
